@@ -1,4 +1,4 @@
-#/usr/bin/perl
+#!/usr/bin/perl
 
 use warnings;
 use diagnostics;
@@ -15,8 +15,7 @@ our %SETTINGS;
     # Password used for simple handshaking
     $SETTINGS{SVRPSW} = 'SECRET-CODE';
     # Path on the local server for this script and content
-    #$SETTINGS{MEDIAP} = '/home/pi/t-and-c';
-    $SETTINGS{MEDIAP} = '/Users/twirp/Development/TaC-Media/RaspClient';
+    $SETTINGS{MEDIAP} = '/home/pi/t-and-c';
     $SETTINGS{OMXOPS} = '-o local';
     $SETTINGS{PINAME} = 'CarPi';
 
