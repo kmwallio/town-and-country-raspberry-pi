@@ -7,6 +7,15 @@
 
 my $Playlist = get_default_playlist();
 my $music_thread = 0;
+
+# Internal: Starts music player thread using the
+#           playlist in $Playlist
+#
+# Example
+#
+#    start_music();
+#
+# Returns void.
 sub start_music {
   # Make sure we're not already playing...
   if (!$music_thread || !$music_thread->is_running()) {
@@ -14,6 +23,15 @@ sub start_music {
   }
 }
 
+# Internal: Starts playing music from a playlist
+#
+# $pl - The playlist to play
+#
+# Example
+#
+#    play_playlist(1);
+#
+# Returns void.
 sub play_playlist {
   my $pl = shift;
   my $last_song = -1;
@@ -33,7 +51,39 @@ sub play_playlist {
   threads->exit;
 }
 
-if ($client_state eq 'MUSIC') {
+# Internal: Changes a playlist.
+#
+# $new_playlist - The new playlist to play
+#
+# Example
+#
+#    change_playlist(2);
+#
+# Returns void.
+sub change_playlist {
+  my $new_playlist = shift;
+
+  if ($new_playlist) {
+    $Playlist = $new_playlist;
+    #
+    # Change state so other's can see
+    if ($client_state eq 'MUSIC') {
+      $client_state = 'CHANGING';
+    }
+
+    #
+    # Quit other media that's running
+    $commands{'quit_song'}();
+    $commands{'quit_video'}();
+
+    #
+    # Start the music again
+    $client_state = 'MUSIC';
+    start_music();
+  }
+}
+
+if ($client_state eq 'MUSIC' && $autostart) {
   start_music();
 }
 

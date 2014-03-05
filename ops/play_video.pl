@@ -39,29 +39,29 @@ sub play_video {
   threads->exit;
 }
 
-sub pause_video {
-  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
-    `echo -n p > "$SETTINGS{MEDIAP}/omx"`;
-  }
-}
+#sub pause_video {
+#  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
+#    `echo -n p > "$SETTINGS{MEDIAP}/omx"`;
+#  }
+#}
 
-sub resume_video {
-  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
-    `echo -n p > "$SETTINGS{MEDIAP}/omx"`;
-  }
-}
+#sub resume_video {
+#  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
+#    `echo -n p > "$SETTINGS{MEDIAP}/omx"`;
+#  }
+#}
 
-sub forward_video {
-  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
-    `echo -n \$'\x1b\x5b\x43' > "$SETTINGS{MEDIAP}/omx"`;
-  }
-}
+#sub forward_video {
+#  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
+#    `echo -n \$'\x1b\x5b\x43' > "$SETTINGS{MEDIAP}/omx"`;
+#  }
+#}
 
-sub rewind_video {
-  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
-    `echo -n \$'\x1b\x5b\x44' > "$SETTINGS{MEDIAP}/omx"`;
-  }
-}
+#sub rewind_video {
+#  if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
+#    `echo -n \$'\x1b\x5b\x44' > "$SETTINGS{MEDIAP}/omx"`;
+#  }
+#}
 
 sub quit_video {
   if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
@@ -77,14 +77,14 @@ sub quit_video {
 
 $commands{'play_video'} = \&play_video;
 $command_params{'play_video'} = "Path:str";
-$commands{'pause_video'} = \&pause_video;
-$command_params{'pause_video'} = "";
-$commands{'resume_video'} = \&resume_video;
-$command_params{'resume_video'} = "";
-$commands{'forward_video'} = \&forward_video;
-$command_params{'forward_video'} = "";
-$commands{'rewind_video'} = \&rewind_video;
-$command_params{'rewind_video'} = "";
+#$commands{'pause_video'} = \&pause_video;
+#$command_params{'pause_video'} = "";
+#$commands{'resume_video'} = \&resume_video;
+#$command_params{'resume_video'} = "";
+#$commands{'forward_video'} = \&forward_video;
+#$command_params{'forward_video'} = "";
+#$commands{'rewind_video'} = \&rewind_video;
+#$command_params{'rewind_video'} = "";
 $commands{'quit_video'} = \&quit_video;
 $command_params{'quit_video'} = "";
 
