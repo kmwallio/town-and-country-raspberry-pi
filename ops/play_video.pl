@@ -63,6 +63,13 @@ sub play_video {
 #  }
 #}
 
+# Public: Stops playing a video
+#
+# Example
+#
+#    quit_video();
+#
+# Returns void.
 sub quit_video {
   if ($playing_video && -e "$SETTINGS{MEDIAP}/omx") {
     `echo -n q > "$SETTINGS{MEDIAP}/omx"`;

@@ -26,8 +26,8 @@ our %SETTINGS;
 
 
 my @load = (
-  "./ops",
-  "./mods",
+  "$SETTINGS{MEDIAP}/ops",
+  "$SETTINGS{MEDIAP}/mods",
 );
 
 #
@@ -41,6 +41,9 @@ our %commands;
 our %command_params;
 our %cli_commands;
 our $client_state = 'MUSIC';
+our $music_thread = 0;
+our $video_thread = 0;
+our $server_thread = 0;
 
 # Load Operators and Mods
 foreach my $folder (@load) {
@@ -52,6 +55,10 @@ foreach my $folder (@load) {
 }
 
 while (1) {
+  #
+  # If we're not connected to the server,
+  # attempt to reconnect.
+  
   sleep(120);
 }
 

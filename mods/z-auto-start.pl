@@ -6,7 +6,6 @@
 # We only support shuffling for now.
 
 my $Playlist = get_default_playlist();
-my $music_thread = 0;
 
 # Internal: Starts music player thread using the
 #           playlist in $Playlist
