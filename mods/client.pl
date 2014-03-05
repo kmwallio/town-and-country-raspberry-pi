@@ -1,9 +1,11 @@
 use Net::EasyTCP;
 use JSON;
-use JSON::XS;
 use Digest::SHA1 qw(sha1_hex);
 use File::Copy;
 
+#
+# This is a list of commands and handlers
+# Default commands are in this file.
 $cli_commands{'PING'} = \&cli_ping;
 $cli_commands{'HELO'} = \&cli_helo;
 $cli_commands{'WGET'} = \&cli_download;
@@ -18,26 +20,54 @@ our $client = new Net::EasyTCP(
   host => $SETTINGS{SERVER},
   port => $SETTINGS{SVRPUB});
 
+# Internal: Sends message to server
+#
+# $message - Message to send
+#
+# Example
+#
+#    cli_send('Hello Server');
+#
+# Returns void
 sub cli_send {
   my $message = shift;
   $client->send($message);
 }
 
+# Internal: Starts client connection to server
+#
+# Example
+#
+#    client_start();
+#
+# Returns void
 sub client_start {
   my %handshake;
   $handshake{'cmd'} = 'HELO';
   $handshake{'cli'} = $SETTINGS{PINAME};
 
+  #
+  # The Handshake simply moves the client from
+  # a noop state, to fully operable state.
+  # This consists of verifying the secret code
+  # stored in the client.  This does not affect
+  # the encryption used by Net::TCP, it just a
+  # simple preventative measure of knowing who
+  # should be able to use the server.
   cli_send(to_json(\%handshake));
 
   my $reply = $client->receive();
+  #
+  # Loop to continue processing commands
   while ($reply) {
     my %response = from_json($reply);
 
     if (exists($cli_commands{$response{'cmd'}})) {
+      #
       # Command is standard command
       $cli_commands{$response{'cmd'}}(\%response);
     } elsif (exists($commands{$response{'cmd'}})) {
+      #
       # Command is an Op command
       $commands{$response{'cmd'}}(split('|', $response{'args'}));
     }

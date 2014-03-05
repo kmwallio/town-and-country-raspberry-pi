@@ -30,6 +30,13 @@ my @load = (
   "./mods",
 );
 
+#
+# %commands are generic commands provided by
+#   anyone
+# %command_params are a list of what type of
+#   parameters are expected
+# %cli_commands are standard commands, however
+#   it does use some of the generic commands
 our %commands;
 our %command_params;
 our %cli_commands;
@@ -45,7 +52,7 @@ foreach my $folder (@load) {
 }
 
 while (1) {
-  sleep(60);
+  sleep(120);
 }
 
 exit 0;

@@ -2,25 +2,39 @@ use POSIX;
 
 my $playing_video = 0;
 
+# Public: Starts playing video
+#
+# $file - Path to video file
+#
+# Example
+#
+#    play_video('./video.mp4');
+#
+# Returns void
 sub play_video {
   my $file = shift;
 
-  if ($playing_video) {
-    `killall omxplayer`;
-  }
+  if (-e $file) {
+    if ($playing_video) {
+      quit_video();
+    }
 
-  if (-e "$SETTINGS{MEDIAP}/omx") {
-    unlink("$SETTINGS{MEDIAP}/omx");
-  }
+    if (-e "$SETTINGS{MEDIAP}/omx") {
+      unlink("$SETTINGS{MEDIAP}/omx");
+    }
 
-  mkfifo ("$SETTINGS{MEDIAP}/omx", 0777);
-  open(VIDPLYR, "|-", "omxplayer $SETTINGS{OMXOPS} \"$file\" < $SETTINGS{MEDIAP}/omx &");
-  `echo -n . > "$SETTINGS{MEDIAP}/omx"`;
-  $playing_video = 1;
-  close(VIDPLYR);
-  $playing_video = 0;
-  if (-e "$SETTINGS{MEDIAP}/omx") {
-    unlink("$SETTINGS{MEDIAP}/omx");
+    #
+    # @TODO: We want to be able to communicate
+    #    with the omxplayer.
+    mkfifo ("$SETTINGS{MEDIAP}/omx", 0777);
+    open(VIDPLYR, "|-", "omxplayer $SETTINGS{OMXOPS} \"$file\" < $SETTINGS{MEDIAP}/omx &");
+    `echo -n . > "$SETTINGS{MEDIAP}/omx"`;
+    $playing_video = 1;
+    close(VIDPLYR);
+    $playing_video = 0;
+    if (-e "$SETTINGS{MEDIAP}/omx") {
+      unlink("$SETTINGS{MEDIAP}/omx");
+    }
   }
   threads->exit;
 }
