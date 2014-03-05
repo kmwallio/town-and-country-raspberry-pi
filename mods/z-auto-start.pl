@@ -36,15 +36,22 @@ sub play_playlist {
   my $last_song = -1;
   my %next_song = get_song($pl, $last_song);
   $last_song = $next_song{'id'};
-  my $play_thread = threads->create('play_song', "$SETTINGS{MEDIAP}/Music/$next_song{'id'}.mp3");
-  while ($play_thread->is_running()) {
+  my $play_thread = 0;
+  if (%next_song) {
+    $play_thread = threads->create('play_song', "$SETTINGS{MEDIAP}/Music/$next_song{'id'}.mp3");
+  }
+  while ($play_thread && $play_thread->is_running()) {
     # Wait on the thread playing the song
     $play_thread->join();
     # Make sure we're in the same state
     if ($client_state eq 'MUSIC') {
       %next_song = get_song($pl, $last_song);
-      $last_song = $next_song{'id'};
-      $play_thread = threads->create('play_song', "$SETTINGS{MEDIAP}/Music/$next_song{'id'}.mp3");
+      if (%next_song) {
+        $last_song = $next_song{'id'};
+        $play_thread = threads->create('play_song', "$SETTINGS{MEDIAP}/Music/$next_song{'id'}.mp3");
+      } else {
+        $play_thread = 0;
+      }
     }
   }
   threads->exit;

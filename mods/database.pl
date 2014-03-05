@@ -14,8 +14,8 @@ unless (-e "$SETTINGS{MEDIAP}/cli.db") {
 #
 # Returns database handle
 sub db_connect {
-  my $dbh = DBI->connect("dbi:SQLite:dbname=$SETTINGS{MEDIAP}/cli.db", "", "", {AutoCommit => 1});
-  return $dbh;
+  my $dbhandle = DBI->connect("dbi:SQLite:dbname=$SETTINGS{MEDIAP}/cli.db", "", "", {AutoCommit => 1});
+  return $dbhandle;
 }
 
 # Internal: Gets a song from the specified playlist
@@ -43,9 +43,18 @@ sub get_song {
   # @TODO: It is possible a playlist only has 1 song.
   unless (%next_song) {
     my $dbh = db_connect();
-    my $sth = $dbh->prepare("SELECT songs.id as id, songs.title as title, songs.artist as artist FROM songs, playlist_link WHERE songs.id=playlist_link.song_id AND songs.id<>? AND playlist_link.playlist_id=? ORDER BY RAND() LIMIT 1");
-    $sth->execute($last_song, $playlist);
-    %next_song = %{$sth->fetchrow_array};
+    my $sth;
+    if ($playlist == -1) {
+      $sth = $dbh->prepare("SELECT id, title, artist FROM songs WHERE id<>? ORDER BY RANDOM() LIMIT 1");
+      $sth->execute($last_song);
+    } else {
+      $sth = $dbh->prepare("SELECT songs.id as id, songs.title as title, songs.artist as artist FROM songs, playlist_link WHERE songs.id=playlist_link.song_id AND songs.id<>? AND playlist_link.playlist_id=? ORDER BY RANDOM() LIMIT 1");
+      $sth->execute($last_song, $playlist);
+    }
+    my $ref = $sth->fetchrow_array;
+    if ($ref) {
+      %next_song = %{$ref};
+    }
     $dbh->disconnect();
   }
 
@@ -93,8 +102,8 @@ sub dequeue_song {
   my $song_ref = $dbh->selectrow_hashref("SELECT * FROM song_queue ORDER BY queue_time ASC LIMIT 1");
   if ($song_ref) {
     my %song = %{$song_ref};
-    %next_song = %{$dbh->selectrow_hashref("SELECT * FROM songs WHERE id=?", undef, %song{'song'})};
-    $dbh->do("DELETE FROM song_queue WHERE queue_time=? LIMIT 1", undef, %song{'queue_time'});
+    %next_song = %{$dbh->selectrow_hashref("SELECT * FROM songs WHERE id=?", undef, $song{'song'})};
+    $dbh->do("DELETE FROM song_queue WHERE queue_time=? LIMIT 1", undef, $song{'queue_time'});
     $dbh->disconnect();
   }
 
@@ -109,7 +118,7 @@ sub dequeue_song {
 #
 # Returns void.
 sub clear_song_queue {
-  my $dbh = connect_db();
+  my $dbh = db_connect();
   $dbh->do("DELETE FROM song_queue WHERE queue_time<>0");
   $dbh->disconnect();
 }
@@ -126,7 +135,7 @@ sub clear_song_queue {
 sub get_movie {
   my $movie_id = shift;
 
-  my $dbh = connect_db();
+  my $dbh = db_connect();
   my %movie_info = %{$dbh->selectrow_hashref("SELECT * FROM movies WHERE id=?", undef, $movie_id)};
   $dbh->disconnect();
 
@@ -141,9 +150,13 @@ sub get_movie {
 #
 # Returns the default playlist id
 sub get_default_playlist {
-  my $dbh = connect_db();
+  my $dbh = db_connect();
 
-  my ($default_playlist) = shift($dbh->selectrow_array("SELECT value FROM settings WHERE setting='default_playlist'"));
+  my $default_playlist = -1;
+  my $res = $dbh->selectrow_array("SELECT value FROM settings WHERE setting='default_playlist'");
+  if ($res) {
+    $default_playlist = shift(@res);
+  }
 
   return $default_playlist;
 }
@@ -161,7 +174,7 @@ sub set_default_playlist {
   #
   # @TODO: Check to see if playlist exists on device
   my $playlist_id = shift;
-  my $dbh = connect_db();
+  my $dbh = db_connect();
 
   $dbh->do("UPDATE settings SET value=? WHERE setting='default_playlist'", undef, $playlist_id);
 
@@ -181,7 +194,7 @@ sub set_default_playlist {
 sub add_playlist {
   my ($playlist_id, $playlist_title) = @_;
 
-  my $dbh = connect_db();
+  my $dbh = db_connect();
 
   $dbh->do("INSERT INTO playlists (id, title) VALUES (?, ?)", undef, $playlist_id, $playlist_title);
 
@@ -201,7 +214,7 @@ sub add_playlist {
 sub remove_song_from_playlist {
   my ($song_id, $playlist_id) = @_;
 
-  my $dbh = connect_db();
+  my $dbh = db_connect();
   $dbh->do("DELETE FROM playlist_link WHERE song_id=? AND playlist_id=?", undef, $song_id, $playlist_id);
   $dbh->disconnect();
 }
@@ -220,7 +233,7 @@ sub add_song_to_playlist {
   #
   # @TODO: We should probably actually check the DB.
   if (-e "$SETTINGS{MEDIAP}/Music/$song_id.mp3") {
-    my $dbh = connect_db();
+    my $dbh = db_connect();
     $dbh->do("INSERT INTO playlist_link (song_id, playlist_id) VALUES (?, ?)", undef, $song_id, $playlist_id);
     $dbh->disconnect();
   }
@@ -239,7 +252,7 @@ sub remove_song {
   my $song_id = shift;
 
   if (-e "$SETTINGS{MEDIAP}/Music/$song_id.mp3") {
-    my $dbh = connect_db();
+    my $dbh = db_connect();
 
     $dbh->do("DELETE FROM playlist_link WHERE song_id=?", undef, $song_id);
     $dbh->do("DELETE FROM songs WHERE id=?", undef, $song_id);
@@ -261,7 +274,7 @@ sub remove_movie {
   my $movie_id = shift;
 
   if (-e "$SETTINGS{MEDIAP}/Movies/$movie_id.mp4") {
-    my $dbh = connect_db();
+    my $dbh = db_connect();
 
     $dbh->do("DELETE FROM movies WHERE id=?", undef, $movie_id);
 
@@ -277,7 +290,7 @@ sub add_movie {
   my ($movie_id, $movie_title) = @_;
 
   if (-e "$SETTINGS{MEDIAP}/Movies/$movie_id.mp4") {
-    my $dbh = connect_db();
+    my $dbh = db_connect();
 
     $dbh->do("INSERT INTO movies (id, title) VALUES (?, ?)", undef, $movie_id, $movie_title);
 
@@ -300,7 +313,7 @@ sub add_song {
   my ($song_id, $song_title, $song_artist) = @_;
 
   if (-e "$SETTINGS{MEDIAP}/Music/$song_id.mp3") {
-    my $dbh = connect_db();
+    my $dbh = db_connect();
 
     $dbh->do("INSERT INTO songs (id, title, artist) VALUES (?, ?, ?)", undef, $song_id, $song_title, $song_artist);
 
@@ -316,13 +329,14 @@ sub add_song {
 #
 # Returns void.
 sub install_cli_db {
-  my $dbh = connect_db();
+  my $dbh = db_connect();
 
   $dbh->do('CREATE TABLE "songs" ("id" INTEGER, "title", TEXT, "artist" TEXT);');
   $dbh->do('CREATE TABLE "movies" ("id" INTEGER, "title" TEXT);');
-  $dbh->do('CREATE TABLE "playlists ("id" INTEGER, "title" TEXT);"');
+  $dbh->do('CREATE TABLE "playlists" ("id" INTEGER, "title" TEXT);"');
   $dbh->do('CREATE TABLE "settings" ("setting" TEXT, "value" TEXT);');
-  $dbh->do('CREATE TABLE "playlist_link" (playlist_id INTEGER REFERENCES "playlists" (id), song_id INTEGER REFERENCES "songs" (id));');
+  $dbh->do('CREATE TABLE "song_queue" ("song" INTEGER REFERENCES "songs" (id), "queue_time" INTEGER);');
+  $dbh->do('CREATE TABLE "playlist_link" ("playlist_id" INTEGER REFERENCES "playlists" (id), "song_id" INTEGER REFERENCES "songs" (id));');
 
   $dbh->disconnect();
 }

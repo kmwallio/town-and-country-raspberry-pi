@@ -112,9 +112,9 @@ sub cli_play_video {
 #
 # Returns void.
 sub cli_speak {
-  my %message = %{shift};
+  my %message = %{shift()};
   if(exists($commands{'speak'})) {
-    $commands{'speak'}($message('phrase'));
+    $commands{'speak'}($message{'phrase'});
   }
 }
 
@@ -169,7 +169,7 @@ sub download_file {
 #
 # Returns void, starts a thread to process download.
 sub cli_download {
-  my %response = %{shift};
+  my %response = %{shift()};
   my %dl_start;
   $dl_start{'cmd'} = 'STARTDL';
   $dl_start{'message'} = 'OK';
@@ -188,7 +188,7 @@ sub cli_download {
 #
 # Returns void.
 sub cli_helo {
-  my %response = %{shift};
+  my %response = %{shift()};
   my %auth;
 
   $auth{'cmd'} = 'AUTH';

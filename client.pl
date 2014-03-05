@@ -15,7 +15,8 @@ our %SETTINGS;
     # Password used for simple handshaking
     $SETTINGS{SVRPSW} = 'SECRET-CODE';
     # Path on the local server for this script and content
-    $SETTINGS{MEDIAP} = '/home/pi/t-and-c';
+    #$SETTINGS{MEDIAP} = '/home/pi/t-and-c';
+    $SETTINGS{MEDIAP} = '/Users/twirp/Development/TaC-Media/RaspClient';
     $SETTINGS{OMXOPS} = '-o local';
     $SETTINGS{PINAME} = 'CarPi';
 
@@ -58,7 +59,7 @@ while (1) {
   #
   # If we're not connected to the server,
   # attempt to reconnect.
-  
+
   sleep(120);
 }
 
