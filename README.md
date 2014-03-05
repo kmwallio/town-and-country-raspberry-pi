@@ -26,6 +26,7 @@ You will need:
   * DBD::SQLite
   * MP3::Tag
   * Net::EasyTCP
+  * JSON
 * espeak
 * cURL
 
